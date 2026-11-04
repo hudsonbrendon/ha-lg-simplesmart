@@ -37,7 +37,9 @@ TRANSPORT = {
 async def async_setup_entry(
     hass: HomeAssistant, entry: LGConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    async_add_entities([LGTV(entry.runtime_data, entry.unique_id or entry.entry_id)])
+    async_add_entities(
+        [LGTV(entry.runtime_data, entry.unique_id or entry.entry_id)], update_before_add=True
+    )
 
 
 class LGTV(MediaPlayerEntity):
