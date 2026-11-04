@@ -1,0 +1,20 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "LG Simple Smart TV",
+        "description": "TV must be on. Enable Settings > Network > Mobile TV On so Home Assistant can turn it on (Wake-on-LAN).",
+        "data": {
+          "host": "Host",
+          "mac": "MAC address (optional, read from the TV when empty)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "TV not reachable on DIAL port 56789. Is it on?"
+    },
+    "abort": {
+      "already_configured": "TV already configured"
+    }
+  }
+}

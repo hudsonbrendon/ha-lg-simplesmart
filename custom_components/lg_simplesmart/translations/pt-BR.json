@@ -1,0 +1,20 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "LG Simple Smart TV",
+        "description": "A TV precisa estar ligada. Ative Configurações > Rede > Mobile TV On para o Home Assistant conseguir ligá-la (Wake-on-LAN).",
+        "data": {
+          "host": "Host",
+          "mac": "Endereço MAC (opcional, lido da TV se vazio)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "TV não responde na porta DIAL 56789. Ela está ligada?"
+    },
+    "abort": {
+      "already_configured": "TV já configurada"
+    }
+  }
+}
