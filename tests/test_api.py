@@ -7,9 +7,9 @@ sys.path.insert(0, str(Path(__file__).parents[1] / "custom_components" / "lg_sim
 import api  # noqa: E402
 
 SSDP = (
-    b"HTTP/1.1 200 OK\r\nLOCATION: http://192.168.31.166:56790/ee.xml\r\n"
+    b"HTTP/1.1 200 OK\r\nLOCATION: http://192.168.1.50:56790/ee.xml\r\n"
     b"ST: urn:dial-multiscreen-org:service:dial:1\r\n"
-    b"WAKEUP: MAC=E4:3E:D7:68:6D:AD;Timeout=60\r\n\r\n"
+    b"WAKEUP: MAC=AA:BB:CC:DD:EE:FF;Timeout=60\r\n\r\n"
 )
 RUNNING = (
     '<?xml version="1.0" encoding="UTF-8"?>\r\n<service xmlns="urn:dial-multiscreen-org:'
@@ -27,7 +27,7 @@ DESC = (
 def test_parsers():
     headers = api.parse_ssdp(SSDP)
     assert headers["location"].endswith("/ee.xml")
-    assert api.wake_mac(headers) == "e4:3e:d7:68:6d:ad"
+    assert api.wake_mac(headers) == "aa:bb:cc:dd:ee:ff"
     assert api.wake_mac({}) is None
     assert api.parse_dial_state(RUNNING)
     assert not api.parse_dial_state(RUNNING.replace("running", "stopped"))
