@@ -11,7 +11,7 @@ no NetCast ROAP/UDAP API, so neither `webostv` nor `lg_netcast` works with them.
 | On/off state | DIAL `GET :56789/apps/YouTube` returns 200 only while the TV is on |
 | Turn on | Wake-on-LAN magic packet (needs **Settings > Network > Mobile TV On**) |
 | Volume / mute | UPnP RenderingControl SOAP |
-| Sources | DIAL apps: YouTube, Netflix, Deezer (launch, status, stop) |
+| Sources | DIAL apps: YouTube, Netflix, Deezer (launch, status, stop). From standby the launch wakes the TV and retries the 503s it answers while booting (up to 45 s) |
 | Play media | URL / media source via AVTransport; YouTube links via DIAL `v=<id>` |
 | Turn off | **Not possible over the network** (see below) |
 

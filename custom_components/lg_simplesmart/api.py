@@ -32,6 +32,7 @@ ST_DMR = "urn:schemas-upnp-org:device:MediaRenderer:1"
 RC = "RenderingControl"
 AVT = "AVTransport"
 TIMEOUT = aiohttp.ClientTimeout(total=6)  # TV Wi-Fi often has ~1 s RTT
+LAUNCH_WAIT = 45  # seconds from standby to a launchable app (1st POST wakes, then 503s)
 
 
 class LGError(Exception):
@@ -153,19 +154,31 @@ class LGSimpleSmart:
                 continue
         return None
 
-    async def launch(self, app: str, payload: str = "") -> None:
-        """POST /apps/<app>; YouTube takes `v=<video id>` as payload."""
-        try:
-            async with self.session.post(
-                self._dial(app),
-                data=payload.encode(),
-                headers={"Content-Type": "text/plain; charset=utf-8"},
-                timeout=TIMEOUT,
-            ) as r:
-                if r.status not in (200, 201):
-                    raise LGError(f"DIAL launch {app}: HTTP {r.status}")
-        except (aiohttp.ClientError, TimeoutError) as err:
-            raise LGError(f"DIAL launch {app}: {err}") from err
+    async def launch(self, app: str, payload: str = "", wait: float = LAUNCH_WAIT) -> None:
+        """POST /apps/<app>; YouTube takes `v=<video id>` as payload.
+
+        From standby (Mobile TV On) the first POST wakes the TV but answers 503
+        while the app launcher boots, so retry until `wait` runs out.
+        """
+        deadline = time.monotonic() + wait
+        while True:
+            try:
+                async with self.session.post(
+                    self._dial(app),
+                    data=payload.encode(),
+                    headers={"Content-Type": "text/plain; charset=utf-8"},
+                    timeout=TIMEOUT,
+                ) as r:
+                    if r.status in (200, 201):
+                        return
+                    if r.status != 503:
+                        raise LGError(f"DIAL launch {app}: HTTP {r.status}")
+                    error = f"HTTP {r.status}"
+            except (aiohttp.ClientError, TimeoutError) as err:
+                error = str(err) or type(err).__name__
+            if time.monotonic() >= deadline:
+                raise LGError(f"DIAL launch {app}: {error} (TV still waking up?)")
+            await asyncio.sleep(3)
 
     async def stop(self, app: str) -> None:
         try:

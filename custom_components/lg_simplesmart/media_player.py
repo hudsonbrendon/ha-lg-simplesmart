@@ -98,9 +98,15 @@ class LGTV(MediaPlayerEntity):
         await self._call(self.client.set_mute(mute))
         self._attr_is_volume_muted = mute
 
+    async def _launch(self, app: str, payload: str = "") -> None:
+        if self.state == MediaPlayerState.OFF and self.client.mac:
+            # DIAL POST also wakes it, but only if Wi-Fi standby still answers TCP
+            await self.hass.async_add_executor_job(self.client.wake)
+        await self._call(self.client.launch(app, payload))
+        self._attr_source = app
+
     async def async_select_source(self, source: str) -> None:
-        await self._call(self.client.launch(source))
-        self._attr_source = source
+        await self._launch(source)
 
     async def async_media_play(self) -> None:
         await self._call(self.client.play())
@@ -121,10 +127,10 @@ class LGTV(MediaPlayerEntity):
                 self.hass, item.url
             )
         if (match := YOUTUBE_ID.search(media_id)) and "youtu" in media_id:
-            await self._call(self.client.launch("YouTube", f"v={match[1]}"))
+            await self._launch("YouTube", f"v={match[1]}")
             return
         if media_type == "youtube":
-            await self._call(self.client.launch("YouTube", f"v={media_id}"))
+            await self._launch("YouTube", f"v={media_id}")
             return
         mime = media_type if "/" in media_type else (
             mimetypes.guess_type(media_id.split("?")[0])[0] or "video/mp4"

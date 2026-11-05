@@ -38,6 +38,47 @@ def test_parsers():
     assert "a&amp;b" in api.didl("http://x/a&b.mp3", "t", "audio/mpeg")
 
 
+async def _launch_retries_503():
+    import asyncio
+
+    from aiohttp import ClientSession, web
+
+    hits = []
+    statuses = [503, 503, 201, 404]
+
+    async def handler(request):
+        hits.append(request.method)
+        return web.Response(status=statuses.pop(0))
+
+    app = web.Application()
+    app.router.add_post("/apps/YouTube", handler)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    await web.TCPSite(runner, "127.0.0.1", api.DIAL_PORT).start()
+    real_sleep, api.asyncio.sleep = asyncio.sleep, lambda _: real_sleep(0)
+    try:
+        async with ClientSession() as session:
+            client = api.LGSimpleSmart(session, "127.0.0.1", None)
+            await client.launch("YouTube")
+            assert hits == ["POST"] * 3
+            try:  # anything but 503 fails at once
+                await client.launch("YouTube")
+            except api.LGError as err:
+                assert "404" in str(err) and len(hits) == 4, err
+            else:
+                raise AssertionError("expected LGError")
+    finally:
+        api.asyncio.sleep = real_sleep
+        await runner.cleanup()
+
+
+def test_launch_retries_503():
+    import asyncio
+
+    asyncio.run(_launch_retries_503())
+
+
 if __name__ == "__main__":
     test_parsers()
+    test_launch_retries_503()
     print("ok")
