@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import mimetypes
 import re
 from datetime import timedelta
@@ -72,14 +73,18 @@ class LGTV(MediaPlayerEntity):
             self._attr_state = MediaPlayerState.OFF
             self._attr_source = None
             return
-        self._attr_source = await self.client.running_app()
+        # DIAL probes in parallel with the DMR chain (sequential: shares one SSDP rediscovery)
+        source, transport = await asyncio.gather(self.client.running_app(), self._update_dmr())
+        self._attr_source = source
+        self._attr_state = TRANSPORT.get(transport, MediaPlayerState.ON)
+
+    async def _update_dmr(self) -> str:
         try:
             self._attr_volume_level = await self.client.get_volume() / 100
             self._attr_is_volume_muted = await self.client.get_mute()
-            transport = await self.client.transport_state()
+            return await self.client.transport_state()
         except LGError:
-            transport = ""  # DMR still booting; DIAL already says it's on
-        self._attr_state = TRANSPORT.get(transport, MediaPlayerState.ON)
+            return ""  # DMR still booting; DIAL already says it's on
 
     async def _call(self, coro) -> None:
         try:

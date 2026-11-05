@@ -32,6 +32,7 @@ ST_DMR = "urn:schemas-upnp-org:device:MediaRenderer:1"
 RC = "RenderingControl"
 AVT = "AVTransport"
 TIMEOUT = aiohttp.ClientTimeout(total=6)  # TV Wi-Fi often has ~1 s RTT
+PROBE_TIMEOUT = aiohttp.ClientTimeout(total=4)  # deep standby = no reply at all
 LAUNCH_WAIT = 45  # seconds from standby to a launchable app (1st POST wakes, then 503s)
 
 
@@ -88,9 +89,12 @@ def send_magic_packet(mac: str, host: str | None = None) -> None:
     packet = b"\xff" * 6 + raw * 16
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        for target in ("255.255.255.255", host):
-            if target:
-                sock.sendto(packet, (target, 9))
+        sock.sendto(packet, ("255.255.255.255", 9))
+        if host:
+            try:  # deep standby drops the ARP entry; broadcast already went out
+                sock.sendto(packet, (host, 9))
+            except OSError:
+                pass
 
 
 def parse_dial_state(xml: str) -> bool:
@@ -139,20 +143,21 @@ class LGSimpleSmart:
 
     async def is_on(self) -> bool:
         try:
-            async with self.session.get(self._dial(APPS[0]), timeout=TIMEOUT) as r:
+            async with self.session.get(self._dial(APPS[0]), timeout=PROBE_TIMEOUT) as r:
                 return r.status == 200
         except (aiohttp.ClientError, TimeoutError):
             return False
 
+    async def _app_running(self, app: str) -> bool:
+        try:
+            async with self.session.get(self._dial(app), timeout=TIMEOUT) as r:
+                return r.status == 200 and parse_dial_state(await r.text())
+        except (aiohttp.ClientError, TimeoutError, ET.ParseError):
+            return False
+
     async def running_app(self) -> str | None:
-        for app in APPS:
-            try:
-                async with self.session.get(self._dial(app), timeout=TIMEOUT) as r:
-                    if r.status == 200 and parse_dial_state(await r.text()):
-                        return app
-            except (aiohttp.ClientError, TimeoutError, ET.ParseError):
-                continue
-        return None
+        states = await asyncio.gather(*(self._app_running(app) for app in APPS))
+        return next((app for app, running in zip(APPS, states) if running), None)
 
     async def launch(self, app: str, payload: str = "", wait: float = LAUNCH_WAIT) -> None:
         """POST /apps/<app>; YouTube takes `v=<video id>` as payload.
