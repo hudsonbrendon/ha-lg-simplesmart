@@ -13,9 +13,11 @@ from homeassistant.components.media_player import (
     BrowseMedia,
     MediaPlayerDeviceClass,
     MediaPlayerEntity,
-    MediaPlayerEntityFeature as F,
     MediaPlayerState,
     async_process_play_media_url,
+)
+from homeassistant.components.media_player import (
+    MediaPlayerEntityFeature as F,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -47,7 +49,7 @@ class LGTV(MediaPlayerEntity):
     _attr_has_entity_name = True
     _attr_name = None
     _attr_device_class = MediaPlayerDeviceClass.TV
-    _attr_source_list = list(APPS)
+    _attr_source_list = list(APPS)  # noqa: RUF012
     _attr_volume_step = 0.02
 
     def __init__(self, client: LGSimpleSmart, unique_id: str) -> None:

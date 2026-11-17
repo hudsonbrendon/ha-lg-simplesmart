@@ -1,4 +1,16 @@
+<p align="center">
+  <img src="custom_components/lg_simplesmart/brand/logo@2x.png" alt="LG Simple Smart TV (NetCast 2016)" height="128">
+</p>
+
 # LG Simple Smart TV (NetCast 2016) for Home Assistant
+
+[![Tests](https://github.com/hudsonbrendon/ha-lg-simplesmart/actions/workflows/tests.yml/badge.svg)](https://github.com/hudsonbrendon/ha-lg-simplesmart/actions/workflows/tests.yml)
+[![Hassfest](https://github.com/hudsonbrendon/ha-lg-simplesmart/actions/workflows/hassfest.yml/badge.svg)](https://github.com/hudsonbrendon/ha-lg-simplesmart/actions/workflows/hassfest.yml)
+[![HACS](https://github.com/hudsonbrendon/ha-lg-simplesmart/actions/workflows/validate.yml/badge.svg)](https://github.com/hudsonbrendon/ha-lg-simplesmart/actions/workflows/validate.yml)
+[![Release](https://img.shields.io/github/v/release/hudsonbrendon/ha-lg-simplesmart?sort=semver)](https://github.com/hudsonbrendon/ha-lg-simplesmart/releases)
+[![Downloads](https://img.shields.io/github/downloads/hudsonbrendon/ha-lg-simplesmart/total)](https://github.com/hudsonbrendon/ha-lg-simplesmart/releases)
+[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/)
+[![License](https://img.shields.io/github/license/hudsonbrendon/ha-lg-simplesmart)](LICENSE)
 
 Custom integration for the 2016 non-webOS LG "Smart TV" line (Simple Smart / NetCast 4.0,
 MStar M2, codename *arabica*), e.g. **32LH570B**. These TVs have no webOS SSAP and
@@ -43,3 +55,10 @@ Listening ports on a running TV (full TCP scan): only these four.
   the downloadable `/mnt/addon` partition, absent from the EPK and not listening on the TV.
 - Standby is only reachable through `CECP_SetStandby` (HDMI-CEC/SimpLink) or the IR remote.
   To turn it off from HA, use a CEC-capable device on the TV's HDMI or an IR blaster.
+
+## Installation
+
+[![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=hudsonbrendon&repository=ha-lg-simplesmart&category=integration)
+[![Add integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=lg_simplesmart)
+
+Or in HACS: *⋮ → Custom repositories* → `https://github.com/hudsonbrendon/ha-lg-simplesmart` (category Integration) → download → restart Home Assistant.
