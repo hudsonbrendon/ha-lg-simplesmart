@@ -72,13 +72,13 @@ async def _launch_retries_503():
         await runner.cleanup()
 
 
-def test_launch_retries_503():
-    import asyncio
-
-    asyncio.run(_launch_retries_503())
+async def test_launch_retries_503(socket_enabled):
+    await _launch_retries_503()
 
 
 if __name__ == "__main__":
     test_parsers()
-    test_launch_retries_503()
+    import asyncio
+
+    asyncio.run(_launch_retries_503())
     print("ok")
